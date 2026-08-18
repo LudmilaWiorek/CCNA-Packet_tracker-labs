@@ -30,12 +30,14 @@ Prefiks bazowy: `2001:db8:acad::/48`
 - [ ] Adresacja sieci LAN
 - [ ] Routing między podsieciami
 
+---
+
 # DNS Lab — Basic DNS Resolution
 
 ## Opis
 
 Proste ćwiczenie konfiguracji DNS w Cisco Packet Tracer, wykonane
-na podstwie wiedzy z kursu CCNA.
+na podstawie wiedzy z kursu CCNA.
 
 Celem ćwiczenia jest skonfigurowanie serwera DNS, dodanie rekordów DNS
 oraz sprawdzenie rozwiązywania nazw z poziomu komputera i routera.
@@ -79,23 +81,41 @@ Na PC1 skonfigurowano adres DNS Server:
 
 Na R1 skonfigurowano korzystanie z serwera DNS:
 
-````cisco
+```cisco
 ip name-server 192.168.10.100
 ip domain-name lab.local
-```Testy
+```
+
+## Testy
 
 Rozwiązywanie nazw zostało przetestowane z poziomu PC1:
 
+```text
 ping www.lab.local
 ping router.lab.local
+```
 
-Test router.lab.local zakończył się poprawnie:
+Test `router.lab.local` zakończył się poprawnie:
 
+```text
 Pinging 192.168.10.1 with 32 bytes of data:
 
+Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time=1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time=1ms TTL=255
+Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
 
-Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
-Reply from 192.168.10.1: bytes=32 time=1ms TTL=255
-Reply from 192.168.10.1: bytes=32 time=1ms TTL=255
-Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
-````
+Ping statistics for 192.168.10.1:
+    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+```
+
+## Status
+
+- [x] Topologia skonfigurowana
+- [x] Adresacja IPv4 skonfigurowana
+- [x] DNS Server skonfigurowany
+- [x] Rekordy DNS dodane
+- [x] PC1 skonfigurowany z adresem DNS Server
+- [x] Rozwiązywanie `router.lab.local` przetestowane — ping OK
+- [ ] Test `nslookup`
+- [ ] Test DNS z poziomu R1
