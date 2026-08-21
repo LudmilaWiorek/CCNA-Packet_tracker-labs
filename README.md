@@ -104,7 +104,7 @@ Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
 Reply from 192.168.10.1: bytes=32 time=1ms TTL=255
 Reply from 192.168.10.1: bytes=32 time=1ms TTL=255
 Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
-````
+```
 
 # VLAN & Inter-VLAN Routing Lab
 
@@ -278,3 +278,247 @@ Status
  Połączenia przetestowane za pomocą ping
  Podstawowy troubleshooting wykonany
 ```
+
+# Static Routing Lab — 2 Sites + ISP
+
+## Opis
+
+Ćwiczenie w Cisco Packet Tracer przedstawiające dwie odseparowane sieci LAN połączone przez router ISP.
+
+Lab obejmuje:
+
+- podstawową adresację IPv4,
+- konfigurację hostów z użyciem adresów statycznych,
+- konfigurację interfejsów routerów,
+- konfigurację bramy domyślnej na hostach,
+- routing statyczny,
+- weryfikację łączności lokalnej i między sieciami.
+
+Kolejne etapy laba będą obejmować **NAT, ACL oraz Site-to-Site VPN**.
+
+---
+
+![Topologia sieci](topologia_Static_Routing.png)
+
+````
+
+R-ISP pełni rolę routera pośredniczącego pomiędzy Site A i Site B.
+
+---
+
+## Adresacja IPv4
+
+### Site A
+
+| Device | Interface     | IP Address      | Subnet Mask     | Default Gateway |
+| ------ | ------------- | --------------- | --------------- | --------------- |
+| PC-A1  | NIC           | `192.168.10.10` | `255.255.255.0` | `192.168.10.1`  |
+| PC-A2  | NIC           | `192.168.10.11` | `255.255.255.0` | `192.168.10.1`  |
+| R1     | LAN interface | `192.168.10.1`  | `255.255.255.0` | —               |
+
+**LAN:** `192.168.10.0/24`
+
+---
+
+### Site B
+
+| Device | Interface     | IP Address      | Subnet Mask     | Default Gateway |
+| ------ | ------------- | --------------- | --------------- | --------------- |
+| PC-B1  | NIC           | `192.168.20.10` | `255.255.255.0` | `192.168.20.1`  |
+| PC-B2  | NIC           | `192.168.20.11` | `255.255.255.0` | `192.168.20.1`  |
+| R2     | LAN interface | `192.168.20.1`  | `255.255.255.0` | —               |
+
+**LAN:** `192.168.20.0/24`
+
+---
+
+### WAN links
+
+| Link       | Network          | Router A             | Router B             |
+| ---------- | ---------------- | -------------------- | -------------------- |
+| R1 ↔ R-ISP | `203.0.113.0/30` | R1: `203.0.113.1`    | R-ISP: `203.0.113.2` |
+| R-ISP ↔ R2 | `203.0.113.4/30` | R-ISP: `203.0.113.5` | R2: `203.0.113.6`    |
+
+### ISP / Server network
+
+`203.0.113.8/29`
+
+This network is directly connected to R-ISP.
+
+---
+
+## Host Configuration
+
+All PCs were configured manually using **Static** IPv4 configuration.
+
+Example:
+
+```text
+IP Address:      192.168.10.10
+Subnet Mask:     255.255.255.0
+Default Gateway: 192.168.10.1
+````
+
+DNS was left empty at this stage.
+
+---
+
+## Static Routing
+
+Dynamic routing protocols such as OSPF are **not used in this stage**.
+
+Static routes were configured manually on R1, R-ISP and R2 to provide end-to-end connectivity.
+
+### R1
+
+```text
+ip route 192.168.20.0 255.255.255.0 203.0.113.2
+ip route 203.0.113.4 255.255.255.252 203.0.113.2
+ip route 203.0.113.8 255.255.255.248 203.0.113.2
+```
+
+R1 forwards traffic for remote networks to R-ISP via `203.0.113.2`.
+
+---
+
+### R-ISP
+
+```text
+ip route 192.168.10.0 255.255.255.0 203.0.113.1
+ip route 192.168.20.0 255.255.255.0 203.0.113.6
+```
+
+R-ISP forwards traffic destined for:
+
+- Site A → R1 (`203.0.113.1`)
+- Site B → R2 (`203.0.113.6`)
+
+---
+
+### R2
+
+```text
+ip route 192.168.10.0 255.255.255.0 203.0.113.5
+ip route 203.0.113.0 255.255.255.252 203.0.113.5
+ip route 203.0.113.8 255.255.255.248 203.0.113.5
+```
+
+R2 forwards traffic for remote networks to R-ISP via `203.0.113.5`.
+
+---
+
+## Verification
+
+### Local connectivity
+
+The following tests were successful:
+
+```text
+PC-A1 → 192.168.10.1
+```
+
+PC-A1 successfully reached its default gateway (R1).
+
+```text
+PC-A1 → 192.168.10.11
+```
+
+PC-A1 successfully reached PC-A2 within the same LAN.
+
+```text
+PC-B1 → 192.168.20.1
+```
+
+PC-B1 successfully reached its default gateway (R2).
+
+---
+
+### Inter-site connectivity
+
+Static routing was verified using:
+
+```text
+PC-A1 → 192.168.20.10
+```
+
+The ping from PC-A1 to PC-B1 was successful.
+
+Traffic successfully traversed:
+
+```text
+PC-A1
+   ↓
+R1
+   ↓
+R-ISP
+   ↓
+R2
+   ↓
+PC-B1
+```
+
+This confirms that routing between the two LANs is operational.
+
+---
+
+## Useful Verification Commands
+
+### Check interface status
+
+```text
+show ip interface brief
+```
+
+### Display the routing table
+
+```text
+show ip route
+```
+
+### Display only static routes
+
+```text
+show ip route static
+```
+
+### Test connectivity
+
+```text
+ping <destination-ip>
+```
+
+---
+
+## Current Lab Status
+
+### Completed
+
+- [x] IPv4 addressing
+- [x] Static host configuration
+- [x] Default gateways
+- [x] LAN connectivity
+- [x] WAN connectivity
+- [x] Static routing
+- [x] Inter-site connectivity verification
+
+### Next steps
+
+- [ ] NAT
+- [ ] ACL
+- [ ] Site-to-Site VPN
+- [ ] Final connectivity and configuration verification
+
+---
+
+## Key Concepts Practiced
+
+- IPv4 addressing
+- `/24` and `/30` subnetting
+- Default gateway
+- Directly connected networks
+- Static routes
+- Next-hop addresses
+- Routing table
+- End-to-end connectivity
+- LAN vs WAN
+- Router-to-router forwarding
