@@ -7,7 +7,7 @@ o zdobytą wiedzę z VLSM i adresacji IPv6.
 
 ## Topologia
 
-![Topologia sieci](topology.png)
+![Topologia sieci](topologia-ipv6.png)
 
 - 3 routery (Router_1, Router_2, Router_3)
 - Router_1 połączony łączem Serial z Router_2 oraz Router_3
